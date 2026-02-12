@@ -1,13 +1,14 @@
 """
-Golf Edge Finder — Streamlit Dashboard v2
+Golf Edge Finder — Streamlit Dashboard v3
 Auto-detects LIVE vs Pre-Tournament model
+EST timezone, reordered columns
 """
 
 import streamlit as st
 import streamlit.components.v1 as components
 import requests
 import re
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 st.set_page_config(page_title="EdgeFinder Golf", page_icon="⛳", layout="wide", initial_sidebar_state="collapsed")
 
@@ -24,6 +25,11 @@ KNOWN_EVENTS = {
 }
 MARKET_LABELS = {"win": "Win", "top_5": "Top 5", "top_10": "Top 10", "top_20": "Top 20"}
 DG_FIELDS = {"win": "win", "top_5": "top_5", "top_10": "top_10", "top_20": "top_20"}
+
+EST = timezone(timedelta(hours=-5))
+
+def now_est():
+    return datetime.now(EST)
 
 # ============================================================
 # CSS
@@ -91,7 +97,6 @@ def get_kalshi_player_name(market):
 
 @st.cache_data(ttl=300)
 def fetch_dg_live():
-    """Try live in-play endpoint."""
     params = {"tour": "pga", "dead_heat": "no", "odds_format": "percent", "file_format": "json", "key": DG_API_KEY}
     try:
         r = requests.get(f"{DG_BASE}/preds/in-play", params=params, timeout=15)
@@ -110,7 +115,6 @@ def fetch_dg_live():
 
 @st.cache_data(ttl=300)
 def fetch_dg_pretournament():
-    """Fetch pre-tournament predictions."""
     params = {"tour": "pga", "odds_format": "percent", "file_format": "json", "key": DG_API_KEY}
     r = requests.get(f"{DG_BASE}/preds/pre-tournament", params=params, timeout=15)
     r.raise_for_status()
@@ -183,13 +187,7 @@ def calculate_all_edges(dg_data, kalshi_by_type):
 def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source):
     rows = ""
     for e in filtered:
-        if e["side"] == "YES":
-            side_html = '<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;background:#3b82f614;color:#60a5fa;border:1px solid #3b82f630;">YES</span>'
-            model_html = f'<span style="color:#e2e8f0;">{e["dg_prob"]:.1f}%</span>'
-        else:
-            side_html = '<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;background:#f59e0b14;color:#fbbf24;border:1px solid #f59e0b30;">NO</span>'
-            model_html = f'<span style="color:#64748b;">{e["dg_yes"]:.1f}% YES &rarr;</span> <span style="color:#e2e8f0;">{e["dg_no"]:.1f}% NO</span>'
-
+        # Event badge
         if e["event"] == "Masters":
             evt_html = f'<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#7c3aed14;color:#a78bfa;border:1px solid #7c3aed30;">{e["event"]}</span>'
         elif e["event"] == "Pebble Beach":
@@ -197,23 +195,30 @@ def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_
         else:
             evt_html = f'<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#64748b14;color:#94a3b8;border:1px solid #64748b30;">{e["event"]}</span>'
 
+        # Side badge
+        if e["side"] == "YES":
+            side_html = '<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;background:#3b82f614;color:#60a5fa;border:1px solid #3b82f630;">YES</span>'
+            model_html = f'<span style="color:#e2e8f0;">{e["dg_prob"]:.1f}%</span>'
+        else:
+            side_html = '<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;background:#f59e0b14;color:#fbbf24;border:1px solid #f59e0b30;">NO</span>'
+            model_html = f'<span style="color:#64748b;">{e["dg_yes"]:.1f}% YES &rarr;</span> <span style="color:#e2e8f0;">{e["dg_no"]:.1f}% NO</span>'
+
         edge_color = "#22c55e" if e["edge"] >= 7 else "#4ade80" if e["edge"] >= 5 else "#86efac"
         rr_color = "#22c55e" if e["rr"] >= 2 else "#4ade80" if e["rr"] >= 1 else "#94a3b8"
 
         rows += f"""<tr>
-<td>{side_html}</td>
+<td>{evt_html}</td>
 <td style="font-family:'Space Grotesk',sans-serif;font-weight:600;color:#f1f5f9;">{e["player"]}</td>
 <td style="color:#94a3b8;">{e["market"]}</td>
-<td>{evt_html}</td>
+<td>{side_html}</td>
 <td>{model_html}</td>
-<td style="color:#e2e8f0;font-weight:500;">{e["cost"]}&cent;</td>
 <td><span style="color:{edge_color};font-weight:700;">+{e["edge"]:.1f}%</span></td>
-<td><span style="color:#ef4444;">{e["cost"]}&cent;</span> <span style="color:#334155;">&rarr;</span> <span style="color:#22c55e;">{e["profit"]}&cent;</span></td>
+<td style="color:#e2e8f0;font-weight:500;">{e["cost"]}&cent;</td>
 <td><span style="color:{rr_color};font-weight:700;">{e["rr"]:.1f}x</span></td>
 </tr>"""
 
     if not filtered:
-        table_body = f'<tr><td colspan="9" style="padding:40px;text-align:center;color:#475569;">No edges above {min_edge}%. Try lowering the threshold.</td></tr>'
+        table_body = f'<tr><td colspan="8" style="padding:40px;text-align:center;color:#475569;">No edges above {min_edge}%. Try lowering the threshold.</td></tr>'
     else:
         table_body = rows
 
@@ -255,7 +260,7 @@ tbody tr:hover{{background:rgba(30,41,59,0.2);}}
   <div class="stat-card"><div class="bar" style="background:linear-gradient(90deg,transparent,#a78bfa40,transparent);"></div><div class="stat-label">AVG EDGE</div><div class="stat-value" style="color:#a78bfa;">{avg_edge:.1f}%</div></div>
 </div>
 <div class="table-wrap"><div style="overflow-x:auto;"><table><thead><tr>
-<th>SIDE</th><th>PLAYER</th><th>MARKET</th><th>EVENT</th><th>DG MODEL</th><th>COST</th><th>EDGE</th><th>RISK &rarr; REWARD</th><th>R/R</th>
+<th>EVENT</th><th>PLAYER</th><th>MARKET</th><th>SIDE</th><th>DG MODEL</th><th>EDGE</th><th>COST</th><th>R/R</th>
 </tr></thead><tbody>{table_body}</tbody></table></div></div>
 <div class="footer"><span>Edge = DG probability &minus; Kalshi ask price &middot; Actual orderbook prices</span><span>{matched} markets matched &middot; {field_size} players</span></div>
 </body></html>"""
@@ -288,10 +293,8 @@ with c4: sort_by = st.selectbox("Sort By", ["Edge", "R/R", "Profit"])
 
 if scan or "edges" in st.session_state:
     if scan:
-        # Try live first, fall back to pre-tournament
         with st.spinner("Checking for live tournament data..."):
             dg_data = fetch_dg_live()
-
         if dg_data:
             st.toast("🔴 Live model active!", icon="🔴")
         else:
@@ -314,7 +317,7 @@ if scan or "edges" in st.session_state:
             "edges": edges, "matched": matched, "field_size": field_size,
             "event_name": dg_data.get("event_name", "Unknown"),
             "source": dg_data.get("source", "PRE-TOURNAMENT"),
-            "last_updated": datetime.now(),
+            "last_updated": now_est(),
         })
 
     edges = st.session_state["edges"]
@@ -327,11 +330,12 @@ if scan or "edges" in st.session_state:
     with col_status:
         dot_class = "pulse-dot-live" if source == "LIVE" else "pulse-dot"
         label = "LIVE" if source == "LIVE" else "Pre-Tournament"
+        time_str = last_updated.strftime("%I:%M %p") + " EST"
         st.markdown(f"""
         <div class="pulse-container" style="margin-top:8px;">
             <div class="{dot_class}"></div>
             <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#64748b;">
-                {label} · Updated {last_updated.strftime("%I:%M %p")}
+                {label} · Updated {time_str}
             </span>
         </div>
         """, unsafe_allow_html=True)
