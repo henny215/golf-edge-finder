@@ -1,7 +1,8 @@
 """
-Golf Edge Finder — Streamlit Dashboard v3
-Auto-detects LIVE vs Pre-Tournament model
-EST timezone, reordered columns
+Golf Edge Finder — Streamlit Dashboard v4
+- Auto-detects LIVE vs Pre-Tournament model
+- Only shows edges for the current DG event (no cross-tournament false edges)
+- EST timezone, clean column order
 """
 
 import streamlit as st
@@ -31,10 +32,6 @@ EST = timezone(timedelta(hours=-5))
 def now_est():
     return datetime.now(EST)
 
-# ============================================================
-# CSS
-# ============================================================
-
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
@@ -59,6 +56,14 @@ div.stButton > button { background: linear-gradient(135deg, #22c55e, #16a34a) !i
 # HELPERS
 # ============================================================
 
+def get_event_code(market):
+    """Extract the event code from a Kalshi market ticker, e.g. 'ATPBP26' from 'KXPGATOUR-ATPBP26-XSCH'."""
+    et = market.get("event_ticker", "")
+    parts = et.split("-")
+    if len(parts) >= 2:
+        return parts[1].upper()
+    return ""
+
 def get_tournament_label(market):
     et = market.get("event_ticker", "")
     parts = et.split("-")
@@ -68,6 +73,52 @@ def get_tournament_label(market):
             if key in code:
                 return name
     return "Unknown"
+
+def identify_current_event_code(markets_by_type, dg_event_name):
+    """
+    Figure out which Kalshi event code corresponds to the current DG tournament.
+    Strategy: find the most common event code across all Kalshi markets, then verify
+    it matches the DG event name. If there are multiple events, pick the one that
+    matches DG's event name keywords.
+    """
+    event_code_counts = {}
+    event_code_to_label = {}
+
+    for m_type, markets in markets_by_type.items():
+        for m in markets:
+            code = get_event_code(m)
+            if code:
+                event_code_counts[code] = event_code_counts.get(code, 0) + 1
+                if code not in event_code_to_label:
+                    event_code_to_label[code] = get_tournament_label(m)
+
+    if not event_code_counts:
+        return None
+
+    # Try to match DG event name to a Kalshi event label
+    dg_lower = dg_event_name.lower()
+    for code, label in event_code_to_label.items():
+        label_lower = label.lower()
+        # Check if key words from the label appear in the DG event name
+        if any(word in dg_lower for word in label_lower.split() if len(word) > 3):
+            return code
+
+    # Fallback: find the event code with the earliest expiration (most current tournament)
+    # by looking at which has the most markets (current week has the most liquidity)
+    # Actually, just pick the most common one that ISN'T a major months away
+    major_codes = set()
+    for code, label in event_code_to_label.items():
+        if label in ["Masters", "PGA Championship", "US Open", "The Open"]:
+            major_codes.add(code)
+
+    # Prefer non-major (current week event) over future major
+    non_major = {c: n for c, n in event_code_counts.items() if c not in major_codes}
+    if non_major:
+        return max(non_major, key=non_major.get)
+
+    # If only majors, pick the most common
+    return max(event_code_counts, key=event_code_counts.get)
+
 
 def normalize_name(name):
     if not name: return ""
@@ -142,6 +193,7 @@ def fetch_kalshi_markets(series_ticker):
 
 def calculate_all_edges(dg_data, kalshi_by_type):
     players = dg_data.get("players", [])
+    dg_event_name = dg_data.get("event_name", "")
     dg_lookup, dg_fuzzy = {}, {}
     for p in players:
         norm = normalize_name(p.get("player_name", ""))
@@ -151,10 +203,22 @@ def calculate_all_edges(dg_data, kalshi_by_type):
             if len(parts) >= 2:
                 dg_fuzzy[f"{parts[0][0]}_{parts[-1]}"] = p
 
+    # Identify which Kalshi event code matches the current DG tournament
+    current_event_code = identify_current_event_code(kalshi_by_type, dg_event_name)
+
     edges = []
     matched = 0
+    skipped_other_event = 0
+
     for m_type, markets in kalshi_by_type.items():
         for m in markets:
+            # FILTER: Only process markets for the current tournament
+            if current_event_code:
+                market_event_code = get_event_code(m)
+                if market_event_code and market_event_code != current_event_code:
+                    skipped_other_event += 1
+                    continue
+
             k_name = get_kalshi_player_name(m)
             if not k_name: continue
             k_norm = normalize_name(k_name)
@@ -181,13 +245,13 @@ def calculate_all_edges(dg_data, kalshi_by_type):
                 edges.append({"player": display_name, "market": MARKET_LABELS.get(m_type), "side": "NO", "event": tournament,
                     "dg_prob": dg_no, "dg_yes": dg_yes, "dg_no": dg_no, "cost": no_ask,
                     "edge": dg_no - no_ask, "profit": 100 - no_ask, "rr": (100 - no_ask) / no_ask})
-    return edges, matched, len(players)
+
+    return edges, matched, len(players), skipped_other_event
 
 
-def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source):
+def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source, skipped_other):
     rows = ""
     for e in filtered:
-        # Event badge
         if e["event"] == "Masters":
             evt_html = f'<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#7c3aed14;color:#a78bfa;border:1px solid #7c3aed30;">{e["event"]}</span>'
         elif e["event"] == "Pebble Beach":
@@ -195,7 +259,6 @@ def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_
         else:
             evt_html = f'<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#64748b14;color:#94a3b8;border:1px solid #64748b30;">{e["event"]}</span>'
 
-        # Side badge
         if e["side"] == "YES":
             side_html = '<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;background:#3b82f614;color:#60a5fa;border:1px solid #3b82f630;">YES</span>'
             model_html = f'<span style="color:#e2e8f0;">{e["dg_prob"]:.1f}%</span>'
@@ -223,6 +286,8 @@ def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_
         table_body = rows
 
     source_badge = '<span style="background:#ef444420;color:#f87171;border:1px solid #ef444440;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.05em;">&#x1F534; LIVE MODEL</span>' if source == "LIVE" else '<span style="background:#3b82f620;color:#60a5fa;border:1px solid #3b82f640;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.05em;">PRE-TOURNAMENT</span>'
+
+    skipped_note = f" &middot; {skipped_other} other-event markets filtered out" if skipped_other > 0 else ""
 
     return f"""<!DOCTYPE html><html><head><style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
@@ -262,7 +327,7 @@ tbody tr:hover{{background:rgba(30,41,59,0.2);}}
 <div class="table-wrap"><div style="overflow-x:auto;"><table><thead><tr>
 <th>EVENT</th><th>PLAYER</th><th>MARKET</th><th>SIDE</th><th>DG MODEL</th><th>EDGE</th><th>COST</th><th>R/R</th>
 </tr></thead><tbody>{table_body}</tbody></table></div></div>
-<div class="footer"><span>Edge = DG probability &minus; Kalshi ask price &middot; Actual orderbook prices</span><span>{matched} markets matched &middot; {field_size} players</span></div>
+<div class="footer"><span>Edge = DG probability &minus; Kalshi ask price &middot; Actual orderbook prices</span><span>{matched} markets matched &middot; {field_size} players{skipped_note}</span></div>
 </body></html>"""
 
 
@@ -312,9 +377,10 @@ if scan or "edges" in st.session_state:
                 if markets:
                     kalshi_by_type[m_type] = markets
 
-        edges, matched, field_size = calculate_all_edges(dg_data, kalshi_by_type)
+        edges, matched, field_size, skipped_other = calculate_all_edges(dg_data, kalshi_by_type)
         st.session_state.update({
             "edges": edges, "matched": matched, "field_size": field_size,
+            "skipped_other": skipped_other,
             "event_name": dg_data.get("event_name", "Unknown"),
             "source": dg_data.get("source", "PRE-TOURNAMENT"),
             "last_updated": now_est(),
@@ -323,6 +389,7 @@ if scan or "edges" in st.session_state:
     edges = st.session_state["edges"]
     matched = st.session_state["matched"]
     field_size = st.session_state["field_size"]
+    skipped_other = st.session_state.get("skipped_other", 0)
     event_name = st.session_state["event_name"]
     source = st.session_state["source"]
     last_updated = st.session_state["last_updated"]
@@ -349,5 +416,5 @@ if scan or "edges" in st.session_state:
     no_count = sum(1 for e in filtered if e["side"] == "NO")
     avg_edge = sum(e["edge"] for e in filtered) / len(filtered) if filtered else 0
 
-    html = build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source)
+    html = build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source, skipped_other)
     components.html(html, height=320 + max(len(filtered), 1) * 44, scrolling=True)
