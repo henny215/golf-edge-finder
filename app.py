@@ -1,6 +1,6 @@
 """
-Golf Edge Finder — Streamlit Dashboard v5
-Elevated design · Dark + Green · Created by Zack Hennigan
+Golf Edge Finder — Streamlit Dashboard v6
+True black · No gradients · Clean flat design · Created by Zack Hennigan
 """
 
 import streamlit as st
@@ -29,110 +29,49 @@ EST = timezone(timedelta(hours=-5))
 def now_est():
     return datetime.now(EST)
 
-# ============================================================
-# CSS — Elevated dark + green
-# ============================================================
-
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
 
-.stApp {
-    background: #060b14;
-}
-header[data-testid="stHeader"] { background: #060b14; }
+.stApp { background: #000000; }
+header[data-testid="stHeader"] { background: #000000; }
 .block-container { padding-top: 1.5rem; max-width: 1140px; }
-
-/* Hide default streamlit elements */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 
-.edge-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 4px;
-}
+.edge-header { display: flex; align-items: center; gap: 14px; margin-bottom: 4px; }
 .edge-logo {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #0d4a2a, #0a3520);
-    border: 1px solid #16a34a33;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 38px; height: 38px; border-radius: 10px;
+    background: #0a0a0a; border: 1px solid #1a1a1a;
+    display: flex; align-items: center; justify-content: center;
     font-size: 18px;
-    box-shadow: 0 0 20px rgba(22, 163, 106, 0.08);
 }
-.edge-title {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: #f0fdf4;
-    letter-spacing: -0.3px;
-}
+.edge-title { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; color: #f0f0f0; letter-spacing: -0.3px; }
 .edge-title span { color: #4ade80; }
 .edge-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    background: linear-gradient(135deg, #0d4a2a, #0a3520);
-    border: 1px solid #16a34a44;
-    color: #4ade80;
-    padding: 3px 10px;
-    border-radius: 5px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
+    letter-spacing: 0.14em; background: #0a0a0a; border: 1px solid #22c55e33;
+    color: #4ade80; padding: 3px 10px; border-radius: 5px;
 }
-.edge-subtitle {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: #3f6b54;
-    margin-top: 2px;
-    letter-spacing: 0.02em;
-}
+.edge-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #404040; margin-top: 2px; }
+
 .pulse-container { display: inline-flex; align-items: center; gap: 8px; }
-.pulse-dot {
-    width: 7px; height: 7px; background: #4ade80; border-radius: 50%; position: relative;
-    box-shadow: 0 0 6px rgba(74, 222, 128, 0.4);
-}
+.pulse-dot { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; position: relative; }
 .pulse-dot::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: #4ade80; opacity: 0.3; animation: pulse 2.5s ease-in-out infinite; }
-.pulse-dot-live {
-    width: 7px; height: 7px; background: #f87171; border-radius: 50%; position: relative;
-    box-shadow: 0 0 6px rgba(248, 113, 113, 0.4);
-}
+.pulse-dot-live { width: 7px; height: 7px; background: #f87171; border-radius: 50%; position: relative; }
 .pulse-dot-live::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: #f87171; opacity: 0.3; animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { transform:scale(1); opacity:.3 } 50% { transform:scale(2.5); opacity:0 } }
 
 div.stButton > button {
-    background: linear-gradient(135deg, #16a34a, #15803d) !important;
-    color: #f0fdf4 !important;
+    background: #16a34a !important;
+    color: #f0f0f0 !important;
     font-family: 'DM Sans', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    border: 1px solid #22c55e44 !important;
-    padding: 0.5rem 1.8rem !important;
-    border-radius: 8px !important;
-    box-shadow: 0 0 20px rgba(22, 163, 106, 0.15), 0 2px 8px rgba(0,0,0,0.3) !important;
-    transition: all 0.2s !important;
+    font-weight: 600 !important; font-size: 13px !important;
+    border: 1px solid #22c55e55 !important;
+    padding: 0.5rem 1.8rem !important; border-radius: 8px !important;
 }
-div.stButton > button:hover {
-    box-shadow: 0 0 30px rgba(22, 163, 106, 0.25), 0 4px 12px rgba(0,0,0,0.4) !important;
-}
-
-/* Selectbox styling */
-div[data-baseweb="select"] > div {
-    background: #0a1120 !important;
-    border-color: #1a2a3a !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-}
-label {
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 11px !important;
-    color: #3f6b54 !important;
-    letter-spacing: 0.08em !important;
-    text-transform: uppercase !important;
-}
+div[data-baseweb="select"] > div { background: #0a0a0a !important; border-color: #1a1a1a !important; font-family: 'IBM Plex Mono', monospace !important; }
+label { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #404040 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -144,9 +83,7 @@ label {
 def get_event_code(market):
     et = market.get("event_ticker", "")
     parts = et.split("-")
-    if len(parts) >= 2:
-        return parts[1].upper()
-    return ""
+    return parts[1].upper() if len(parts) >= 2 else ""
 
 def get_tournament_label(market):
     et = market.get("event_ticker", "")
@@ -154,49 +91,36 @@ def get_tournament_label(market):
     if len(parts) >= 2:
         code = re.sub(r'\d+$', '', parts[1]).upper()
         for key, name in KNOWN_EVENTS.items():
-            if key in code:
-                return name
+            if key in code: return name
     return "Unknown"
 
 def identify_current_event_code(markets_by_type, dg_event_name):
-    event_code_counts = {}
-    event_code_to_label = {}
+    event_code_counts, event_code_to_label = {}, {}
     for m_type, markets in markets_by_type.items():
         for m in markets:
             code = get_event_code(m)
             if code:
                 event_code_counts[code] = event_code_counts.get(code, 0) + 1
-                if code not in event_code_to_label:
-                    event_code_to_label[code] = get_tournament_label(m)
-    if not event_code_counts:
-        return None
+                if code not in event_code_to_label: event_code_to_label[code] = get_tournament_label(m)
+    if not event_code_counts: return None
     dg_lower = dg_event_name.lower()
     for code, label in event_code_to_label.items():
-        label_lower = label.lower()
-        if any(word in dg_lower for word in label_lower.split() if len(word) > 3):
-            return code
-    major_codes = set()
-    for code, label in event_code_to_label.items():
-        if label in ["Masters", "PGA Championship", "US Open", "The Open"]:
-            major_codes.add(code)
+        if any(word in dg_lower for word in label.lower().split() if len(word) > 3): return code
+    major_codes = {c for c, l in event_code_to_label.items() if l in ["Masters", "PGA Championship", "US Open", "The Open"]}
     non_major = {c: n for c, n in event_code_counts.items() if c not in major_codes}
-    if non_major:
-        return max(non_major, key=non_major.get)
-    return max(event_code_counts, key=event_code_counts.get)
+    return max(non_major, key=non_major.get) if non_major else max(event_code_counts, key=event_code_counts.get)
 
 def normalize_name(name):
     if not name: return ""
     name = name.strip()
     if "," in name:
-        parts = name.split(",", 1)
-        name = f"{parts[1].strip()} {parts[0].strip()}"
+        parts = name.split(",", 1); name = f"{parts[1].strip()} {parts[0].strip()}"
     return re.sub(r"\s+(jr|sr|ii|iii|iv)$", "", re.sub(r"\s+", " ", re.sub(r"[.\-']", "", name.lower())))
 
 def format_player_name(name):
     if not name: return ""
     if "," in name:
-        parts = name.split(",", 1)
-        return f"{parts[1].strip()} {parts[0].strip()}"
+        parts = name.split(",", 1); return f"{parts[1].strip()} {parts[0].strip()}"
     return name
 
 def get_kalshi_player_name(market):
@@ -204,7 +128,6 @@ def get_kalshi_player_name(market):
     if name and len(name.strip().split()) >= 2:
         return re.sub(r"\s+(finish|wins?|top|make|miss).*$", "", name, flags=re.IGNORECASE).strip()
     return None
-
 
 # ============================================================
 # API
@@ -224,8 +147,7 @@ def fetch_dg_live():
                         return {"event_name": event_name, "players": data[key], "source": "LIVE"}
             elif isinstance(data, list) and len(data) > 0:
                 return {"event_name": "Live Tournament", "players": data, "source": "LIVE"}
-    except:
-        pass
+    except: pass
     return None
 
 @st.cache_data(ttl=300)
@@ -234,49 +156,37 @@ def fetch_dg_pretournament():
     r = requests.get(f"{DG_BASE}/preds/pre-tournament", params=params, timeout=15)
     r.raise_for_status()
     data = r.json()
-    event_name = data.get("event_name", "Unknown Event")
-    players = data.get("baseline_history_fit", []) or data.get("baseline", [])
-    return {"event_name": event_name, "players": players, "source": "PRE-TOURNAMENT"}
+    return {"event_name": data.get("event_name", "Unknown Event"), "players": data.get("baseline_history_fit", []) or data.get("baseline", []), "source": "PRE-TOURNAMENT"}
 
 @st.cache_data(ttl=120)
 def fetch_kalshi_markets(series_ticker):
-    all_markets = []
-    cursor = None
+    all_markets, cursor = [], None
     for _ in range(20):
         params = {"series_ticker": series_ticker, "status": "open", "limit": 200}
         if cursor: params["cursor"] = cursor
         r = requests.get(f"{KALSHI_BASE}/markets", params=params, timeout=15)
         if r.status_code != 200: break
-        data = r.json()
-        markets = data.get("markets", [])
+        data = r.json(); markets = data.get("markets", [])
         if not markets: break
-        all_markets.extend(markets)
-        cursor = data.get("cursor")
+        all_markets.extend(markets); cursor = data.get("cursor")
         if not cursor: break
     return all_markets
 
 def calculate_all_edges(dg_data, kalshi_by_type):
     players = dg_data.get("players", [])
-    dg_event_name = dg_data.get("event_name", "")
     dg_lookup, dg_fuzzy = {}, {}
     for p in players:
         norm = normalize_name(p.get("player_name", ""))
         if norm:
             dg_lookup[norm] = p
             parts = norm.split()
-            if len(parts) >= 2:
-                dg_fuzzy[f"{parts[0][0]}_{parts[-1]}"] = p
-    current_event_code = identify_current_event_code(kalshi_by_type, dg_event_name)
-    edges = []
-    matched = 0
-    skipped_other_event = 0
+            if len(parts) >= 2: dg_fuzzy[f"{parts[0][0]}_{parts[-1]}"] = p
+    current_event_code = identify_current_event_code(kalshi_by_type, dg_data.get("event_name", ""))
+    edges, matched, skipped = [], 0, 0
     for m_type, markets in kalshi_by_type.items():
         for m in markets:
             if current_event_code:
-                market_event_code = get_event_code(m)
-                if market_event_code and market_event_code != current_event_code:
-                    skipped_other_event += 1
-                    continue
+                if get_event_code(m) and get_event_code(m) != current_event_code: skipped += 1; continue
             k_name = get_kalshi_player_name(m)
             if not k_name: continue
             k_norm = normalize_name(k_name)
@@ -284,14 +194,12 @@ def calculate_all_edges(dg_data, kalshi_by_type):
             dg = dg_lookup.get(k_norm)
             if not dg:
                 parts = k_norm.split()
-                if len(parts) >= 2:
-                    dg = dg_fuzzy.get(f"{parts[0][0]}_{parts[len(parts)-1]}")
+                if len(parts) >= 2: dg = dg_fuzzy.get(f"{parts[0][0]}_{parts[-1]}")
             if not dg: continue
             matched += 1
             dg_prob = dg.get(DG_FIELDS.get(m_type))
             if dg_prob is None: continue
-            dg_yes = dg_prob * 100 if dg_prob <= 1 else float(dg_prob)
-            dg_no = 100 - dg_yes
+            dg_yes = dg_prob * 100 if dg_prob <= 1 else float(dg_prob); dg_no = 100 - dg_yes
             tournament = get_tournament_label(m)
             display_name = format_player_name(dg.get("player_name", k_name))
             if yes_ask and yes_ask > 0:
@@ -302,18 +210,14 @@ def calculate_all_edges(dg_data, kalshi_by_type):
                 edges.append({"player": display_name, "market": MARKET_LABELS.get(m_type), "side": "NO", "event": tournament,
                     "dg_prob": dg_no, "dg_yes": dg_yes, "dg_no": dg_no, "cost": no_ask,
                     "edge": dg_no - no_ask, "profit": 100 - no_ask, "rr": (100 - no_ask) / no_ask})
-    return edges, matched, len(players), skipped_other_event
+    return edges, matched, len(players), skipped
 
 
 def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source, skipped_other):
     rows = ""
-    for i, e in enumerate(filtered):
-        if e["event"] == "Masters":
-            evt_html = f'<span class="badge badge-masters">{e["event"]}</span>'
-        elif e["event"] == "Pebble Beach":
-            evt_html = f'<span class="badge badge-current">{e["event"]}</span>'
-        else:
-            evt_html = f'<span class="badge badge-other">{e["event"]}</span>'
+    for e in filtered:
+        evt_cls = "badge-masters" if e["event"] == "Masters" else "badge-current" if e["event"] == "Pebble Beach" else "badge-other"
+        evt_html = f'<span class="badge {evt_cls}">{e["event"]}</span>'
 
         if e["side"] == "YES":
             side_html = '<span class="badge badge-yes">YES</span>'
@@ -336,33 +240,19 @@ def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_
 <td><span class="{rr_cls}">{e["rr"]:.1f}x</span></td>
 </tr>"""
 
-    if not filtered:
-        table_body = f'<tr><td colspan="8" class="empty-state">No edges above {min_edge}% — try lowering the threshold</td></tr>'
-    else:
-        table_body = rows
+    table_body = rows if filtered else f'<tr><td colspan="8" class="empty-state">No edges above {min_edge}% — try lowering the threshold</td></tr>'
 
-    if source == "LIVE":
-        source_badge = '<span class="source-badge source-live"><span class="live-dot"></span>LIVE MODEL</span>'
-    else:
-        source_badge = '<span class="source-badge source-pre">PRE-TOURNAMENT</span>'
-
+    source_badge = '<span class="source-badge source-live"><span class="live-dot"></span>LIVE MODEL</span>' if source == "LIVE" else '<span class="source-badge source-pre">PRE-TOURNAMENT</span>'
     skipped_note = f" &middot; {skipped_other} future markets filtered" if skipped_other > 0 else ""
 
     return f"""<!DOCTYPE html><html><head><style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
 * {{ box-sizing:border-box; margin:0; padding:0; }}
-body {{
-    background: #060b14;
-    color: #c4d6cf;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    -webkit-font-smoothing: antialiased;
-}}
+body {{ background:#000000; color:#b0b0b0; font-family:'IBM Plex Mono',monospace; font-size:13px; -webkit-font-smoothing:antialiased; }}
 
-/* Event banner */
 .event-banner {{
-    background: linear-gradient(135deg, #0a1a12 0%, #0d1117 50%, #0a1a12 100%);
-    border: 1px solid #1a3a2a;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
     border-radius: 12px;
     padding: 20px 24px;
     margin-bottom: 16px;
@@ -371,232 +261,99 @@ body {{
     align-items: center;
     flex-wrap: wrap;
     gap: 16px;
-    position: relative;
-    overflow: hidden;
 }}
-.event-banner::before {{
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #4ade8033, transparent);
-}}
-.event-label {{
-    font-size: 9px;
-    color: #3f6b54;
-    letter-spacing: 0.14em;
-    font-weight: 600;
-    text-transform: uppercase;
-}}
-.event-name {{
-    font-family: 'DM Sans', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: #e8f5ec;
-    margin-top: 6px;
-    letter-spacing: -0.3px;
-}}
-.event-stat {{
-    text-align: center;
-}}
-.event-stat-value {{
-    font-size: 20px;
-    font-weight: 600;
-    color: #e8f5ec;
-    font-family: 'DM Sans', sans-serif;
-}}
+.event-label {{ font-size:9px; color:#404040; letter-spacing:0.14em; font-weight:600; text-transform:uppercase; }}
+.event-name {{ font-family:'DM Sans',sans-serif; font-size:22px; font-weight:700; color:#e8e8e8; margin-top:6px; letter-spacing:-0.3px; }}
+.event-stat {{ text-align:center; }}
+.event-stat-value {{ font-size:20px; font-weight:600; color:#e8e8e8; font-family:'DM Sans',sans-serif; }}
 
-/* Source badges */
-.source-badge {{
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-}}
-.source-live {{
-    background: #f8717115;
-    color: #f87171;
-    border: 1px solid #f8717133;
-}}
-.source-pre {{
-    background: #4ade8010;
-    color: #4ade80;
-    border: 1px solid #4ade8025;
-}}
-.live-dot {{
-    width: 6px; height: 6px;
-    background: #f87171;
-    border-radius: 50%;
-    animation: livePulse 1.5s ease-in-out infinite;
-}}
-@keyframes livePulse {{ 0%,100% {{ opacity:1 }} 50% {{ opacity:0.4 }} }}
+.source-badge {{ display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:6px; font-size:10px; font-weight:600; letter-spacing:0.08em; }}
+.source-live {{ background:#f8717112; color:#f87171; border:1px solid #f8717130; }}
+.source-pre {{ background:#4ade800d; color:#4ade80; border:1px solid #4ade8022; }}
+.live-dot {{ width:6px; height:6px; background:#f87171; border-radius:50%; animation:livePulse 1.5s ease-in-out infinite; }}
+@keyframes livePulse {{ 0%,100%{{opacity:1}} 50%{{opacity:0.4}} }}
 
-/* Stat cards */
-.stat-row {{
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 16px;
-}}
+.stat-row {{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }}
 .stat-card {{
-    background: linear-gradient(160deg, #0c1a14, #0a1120);
-    border: 1px solid #1a2a22;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
     border-radius: 10px;
     padding: 16px 18px;
-    position: relative;
-    overflow: hidden;
 }}
-.stat-card::before {{
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-}}
-.stat-card.green::before {{ background: linear-gradient(90deg, transparent, #4ade8030, transparent); }}
-.stat-card.blue::before {{ background: linear-gradient(90deg, transparent, #60a5fa30, transparent); }}
-.stat-card.amber::before {{ background: linear-gradient(90deg, transparent, #fbbf2430, transparent); }}
-.stat-card.purple::before {{ background: linear-gradient(90deg, transparent, #a78bfa30, transparent); }}
-.stat-label {{
-    font-size: 9px;
-    color: #3f6b54;
-    letter-spacing: 0.12em;
-    font-weight: 600;
-    margin-bottom: 8px;
-}}
-.stat-value {{
-    font-family: 'DM Sans', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-}}
-.stat-green {{ color: #4ade80; }}
-.stat-blue {{ color: #60a5fa; }}
-.stat-amber {{ color: #fbbf24; }}
-.stat-purple {{ color: #a78bfa; }}
+.stat-label {{ font-size:9px; color:#404040; letter-spacing:0.12em; font-weight:600; margin-bottom:8px; text-transform:uppercase; }}
+.stat-value {{ font-family:'DM Sans',sans-serif; font-size:28px; font-weight:700; }}
+.stat-green {{ color:#4ade80; }}
+.stat-blue {{ color:#60a5fa; }}
+.stat-amber {{ color:#fbbf24; }}
+.stat-purple {{ color:#a78bfa; }}
 
-/* Table */
 .table-wrap {{
-    background: linear-gradient(160deg, #0c1a14, #0a1120);
-    border: 1px solid #1a2a22;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
     border-radius: 12px;
     overflow: hidden;
-    position: relative;
 }}
-.table-wrap::before {{
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #4ade8020, transparent);
-}}
-table {{ width: 100%; border-collapse: collapse; }}
+table {{ width:100%; border-collapse:collapse; }}
 thead th {{
-    background: #060b14;
-    color: #3f6b54;
+    background: #050505;
+    color: #404040;
     font-size: 9px;
     letter-spacing: 0.12em;
     font-weight: 600;
     padding: 14px 16px;
     text-align: left;
-    border-bottom: 1px solid #1a2a22;
+    border-bottom: 1px solid #1a1a1a;
     white-space: nowrap;
     text-transform: uppercase;
 }}
 tbody td {{
     padding: 12px 16px;
-    border-bottom: 1px solid #0d1a1408;
+    border-bottom: 1px solid #0f0f0f;
     white-space: nowrap;
-    transition: background 0.15s;
 }}
-tbody tr:nth-child(even) {{ background: #04080e44; }}
-tbody tr:hover {{ background: #1a2a2233; }}
-.player-cell {{
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600;
-    color: #e8f5ec;
-    font-size: 13px;
-}}
-.text-bright {{ color: #d4e8dc; }}
-.text-dim {{ color: #3f6b54; }}
-.text-secondary {{ color: #5a8a70; }}
-.empty-state {{
-    padding: 48px !important;
-    text-align: center;
-    color: #3f6b54;
-    font-style: italic;
-}}
+tbody tr:nth-child(even) {{ background: #050505; }}
+tbody tr:hover {{ background: #111111; }}
 
-/* Badges */
-.badge {{
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 5px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-}}
-.badge-yes {{
-    background: #60a5fa12;
-    color: #60a5fa;
-    border: 1px solid #60a5fa28;
-}}
-.badge-no {{
-    background: #fbbf2412;
-    color: #fbbf24;
-    border: 1px solid #fbbf2428;
-}}
-.badge-current {{
-    background: #4ade8008;
-    color: #4ade80;
-    border: 1px solid #4ade8020;
-}}
-.badge-masters {{
-    background: #a78bfa10;
-    color: #a78bfa;
-    border: 1px solid #a78bfa28;
-}}
-.badge-other {{
-    background: #5a8a7010;
-    color: #5a8a70;
-    border: 1px solid #5a8a7028;
-}}
+.player-cell {{ font-family:'DM Sans',sans-serif; font-weight:600; color:#e0e0e0; font-size:13px; }}
+.text-bright {{ color:#d0d0d0; }}
+.text-dim {{ color:#505050; }}
+.text-secondary {{ color:#707070; }}
+.empty-state {{ padding:48px !important; text-align:center; color:#404040; font-style:italic; }}
 
-/* Edge colors */
-.edge-hot {{ color: #4ade80; font-weight: 700; text-shadow: 0 0 12px rgba(74,222,128,0.2); }}
-.edge-warm {{ color: #86efac; font-weight: 700; }}
-.edge-mild {{ color: #a7f3d0; font-weight: 600; }}
-.rr-hot {{ color: #4ade80; font-weight: 700; }}
-.rr-warm {{ color: #86efac; font-weight: 600; }}
-.rr-cool {{ color: #5a8a70; font-weight: 500; }}
+.badge {{ display:inline-block; padding:3px 10px; border-radius:5px; font-size:10px; font-weight:600; letter-spacing:0.03em; }}
+.badge-yes {{ background:#60a5fa10; color:#60a5fa; border:1px solid #60a5fa25; }}
+.badge-no {{ background:#fbbf2410; color:#fbbf24; border:1px solid #fbbf2425; }}
+.badge-current {{ background:#4ade8008; color:#4ade80; border:1px solid #4ade801a; }}
+.badge-masters {{ background:#a78bfa0d; color:#a78bfa; border:1px solid #a78bfa25; }}
+.badge-other {{ background:#70707010; color:#707070; border:1px solid #70707025; }}
 
-/* Footer */
+.edge-hot {{ color:#4ade80; font-weight:700; }}
+.edge-warm {{ color:#86efac; font-weight:700; }}
+.edge-mild {{ color:#a7f3d0; font-weight:600; }}
+.rr-hot {{ color:#4ade80; font-weight:700; }}
+.rr-warm {{ color:#86efac; font-weight:600; }}
+.rr-cool {{ color:#606060; font-weight:500; }}
+
 .footer {{
     margin-top: 20px;
     padding-top: 16px;
-    border-top: 1px solid #1a2a2233;
+    border-top: 1px solid #1a1a1a;
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
     font-size: 11px;
-    color: #2a4a3a;
+    color: #303030;
 }}
 .footer-credit {{
     font-family: 'DM Sans', sans-serif;
-    font-size: 11px;
-    color: #3f6b54;
+    font-size: 12px;
+    color: #353535;
     text-align: center;
-    margin-top: 20px;
+    margin-top: 24px;
     padding: 16px 0;
-    border-top: 1px solid #1a2a2218;
+    border-top: 1px solid #1a1a1a;
     letter-spacing: 0.02em;
-}}
-.footer-credit a {{
-    color: #4ade80;
-    text-decoration: none;
 }}
 </style></head><body>
 
@@ -609,22 +366,16 @@ tbody tr:hover {{ background: #1a2a2233; }}
     <div class="event-name">{event_name}</div>
   </div>
   <div style="display:flex;gap:28px;">
-    <div class="event-stat">
-      <div class="event-label">Field</div>
-      <div class="event-stat-value">{field_size}</div>
-    </div>
-    <div class="event-stat">
-      <div class="event-label">Matched</div>
-      <div class="event-stat-value">{matched}</div>
-    </div>
+    <div class="event-stat"><div class="event-label">Field</div><div class="event-stat-value">{field_size}</div></div>
+    <div class="event-stat"><div class="event-label">Matched</div><div class="event-stat-value">{matched}</div></div>
   </div>
 </div>
 
 <div class="stat-row">
-  <div class="stat-card green"><div class="stat-label">Edges Found</div><div class="stat-value stat-green">{len(filtered)}</div></div>
-  <div class="stat-card blue"><div class="stat-label">Buy Yes</div><div class="stat-value stat-blue">{yes_count}</div></div>
-  <div class="stat-card amber"><div class="stat-label">Buy No</div><div class="stat-value stat-amber">{no_count}</div></div>
-  <div class="stat-card purple"><div class="stat-label">Avg Edge</div><div class="stat-value stat-purple">{avg_edge:.1f}%</div></div>
+  <div class="stat-card"><div class="stat-label">Edges Found</div><div class="stat-value stat-green">{len(filtered)}</div></div>
+  <div class="stat-card"><div class="stat-label">Buy Yes</div><div class="stat-value stat-blue">{yes_count}</div></div>
+  <div class="stat-card"><div class="stat-label">Buy No</div><div class="stat-value stat-amber">{no_count}</div></div>
+  <div class="stat-card"><div class="stat-label">Avg Edge</div><div class="stat-value stat-purple">{avg_edge:.1f}%</div></div>
 </div>
 
 <div class="table-wrap">
@@ -698,8 +449,7 @@ if scan or "edges" in st.session_state:
         for m_type, ticker in KALSHI_SERIES.items():
             with st.spinner(f"Scanning Kalshi {m_type.replace('_', ' ')} markets..."):
                 markets = fetch_kalshi_markets(ticker)
-                if markets:
-                    kalshi_by_type[m_type] = markets
+                if markets: kalshi_by_type[m_type] = markets
 
         edges, matched, field_size, skipped_other = calculate_all_edges(dg_data, kalshi_by_type)
         st.session_state.update({
@@ -725,7 +475,7 @@ if scan or "edges" in st.session_state:
         st.markdown(f"""
         <div class="pulse-container" style="margin-top:8px;">
             <div class="{dot_class}"></div>
-            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3f6b54;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#404040;">
                 {label} &middot; {time_str}
             </span>
         </div>
