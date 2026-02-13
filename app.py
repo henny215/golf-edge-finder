@@ -70,8 +70,11 @@ div.stButton > button {
     border: 1px solid #22c55e55 !important;
     padding: 0.5rem 1.8rem !important; border-radius: 8px !important;
 }
-div[data-baseweb="select"] > div { background: #0a0a0a !important; border-color: #1a1a1a !important; font-family: 'IBM Plex Mono', monospace !important; }
-label { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #404040 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
+div[data-baseweb="select"] > div { background: #161616 !important; border-color: #2a2a2a !important; font-family: 'IBM Plex Mono', monospace !important; color: #d0d0d0 !important; }
+div[data-baseweb="select"] > div:hover { border-color: #4ade8044 !important; }
+div[data-baseweb="select"] span { color: #d0d0d0 !important; }
+div[data-baseweb="select"] svg { fill: #707070 !important; }
+label { font-family: 'IBM Plex Mono', monospace !important; font-size: 11px !important; color: #606060 !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -491,4 +494,4 @@ if scan or "edges" in st.session_state:
     avg_edge = sum(e["edge"] for e in filtered) / len(filtered) if filtered else 0
 
     html = build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source, skipped_other)
-    components.html(html, height=380 + max(len(filtered), 1) * 46, scrolling=True)
+    components.html(html, height=380 + max(len(filtered), 1) * 46, scrolling=False)
