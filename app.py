@@ -35,7 +35,7 @@ st.markdown("""
 
 .stApp { background: #090909; }
 header[data-testid="stHeader"] { background: #090909; }
-.block-container { padding-top: 1.5rem; max-width: 1140px; }
+.block-container { padding-top: 3rem; max-width: 1140px; }
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 
