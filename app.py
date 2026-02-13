@@ -33,8 +33,8 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
 
-.stApp { background: #000000; }
-header[data-testid="stHeader"] { background: #000000; }
+.stApp { background: #090909; }
+header[data-testid="stHeader"] { background: #090909; }
 .block-container { padding-top: 1.5rem; max-width: 1140px; }
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
@@ -248,7 +248,7 @@ def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_
     return f"""<!DOCTYPE html><html><head><style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
 * {{ box-sizing:border-box; margin:0; padding:0; }}
-body {{ background:#000000; color:#b0b0b0; font-family:'IBM Plex Mono',monospace; font-size:13px; -webkit-font-smoothing:antialiased; }}
+body {{ background:#090909; color:#b0b0b0; font-family:'IBM Plex Mono',monospace; font-size:13px; -webkit-font-smoothing:antialiased; }}
 
 .event-banner {{
     background: #0a0a0a;
