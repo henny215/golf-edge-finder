@@ -1,8 +1,6 @@
 """
-Golf Edge Finder — Streamlit Dashboard v4
-- Auto-detects LIVE vs Pre-Tournament model
-- Only shows edges for the current DG event (no cross-tournament false edges)
-- EST timezone, clean column order
+Golf Edge Finder — Streamlit Dashboard v5
+Elevated design · Dark + Green · Created by Zack Hennigan
 """
 
 import streamlit as st
@@ -28,26 +26,113 @@ MARKET_LABELS = {"win": "Win", "top_5": "Top 5", "top_10": "Top 10", "top_20": "
 DG_FIELDS = {"win": "win", "top_5": "top_5", "top_10": "top_10", "top_20": "top_20"}
 
 EST = timezone(timedelta(hours=-5))
-
 def now_est():
     return datetime.now(EST)
 
+# ============================================================
+# CSS — Elevated dark + green
+# ============================================================
+
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-.stApp { background-color: #0a0f1a; }
-header[data-testid="stHeader"] { background-color: #0a0f1a; }
-.block-container { padding-top: 2rem; max-width: 1100px; }
-.edge-title { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: #f8fafc; letter-spacing: -0.5px; }
-.edge-title span { color: #22c55e; }
-.edge-subtitle { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #475569; margin-top: 2px; }
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
+
+.stApp {
+    background: #060b14;
+}
+header[data-testid="stHeader"] { background: #060b14; }
+.block-container { padding-top: 1.5rem; max-width: 1140px; }
+
+/* Hide default streamlit elements */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+
+.edge-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 4px;
+}
+.edge-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0d4a2a, #0a3520);
+    border: 1px solid #16a34a33;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 20px rgba(22, 163, 106, 0.08);
+}
+.edge-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #f0fdf4;
+    letter-spacing: -0.3px;
+}
+.edge-title span { color: #4ade80; }
+.edge-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    background: linear-gradient(135deg, #0d4a2a, #0a3520);
+    border: 1px solid #16a34a44;
+    color: #4ade80;
+    padding: 3px 10px;
+    border-radius: 5px;
+}
+.edge-subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #3f6b54;
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+}
 .pulse-container { display: inline-flex; align-items: center; gap: 8px; }
-.pulse-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; position: relative; }
-.pulse-dot::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: #22c55e; opacity: 0.4; animation: pulse 2s ease-in-out infinite; }
-.pulse-dot-live { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; position: relative; }
-.pulse-dot-live::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: #ef4444; opacity: 0.4; animation: pulse 2s ease-in-out infinite; }
-@keyframes pulse { 0%,100% { transform:scale(1); opacity:.4 } 50% { transform:scale(2); opacity:0 } }
-div.stButton > button { background: linear-gradient(135deg, #22c55e, #16a34a) !important; color: #0a0f1a !important; font-family: 'Space Grotesk', sans-serif !important; font-weight: 700 !important; border: none !important; padding: 0.5rem 2rem !important; border-radius: 6px !important; }
+.pulse-dot {
+    width: 7px; height: 7px; background: #4ade80; border-radius: 50%; position: relative;
+    box-shadow: 0 0 6px rgba(74, 222, 128, 0.4);
+}
+.pulse-dot::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: #4ade80; opacity: 0.3; animation: pulse 2.5s ease-in-out infinite; }
+.pulse-dot-live {
+    width: 7px; height: 7px; background: #f87171; border-radius: 50%; position: relative;
+    box-shadow: 0 0 6px rgba(248, 113, 113, 0.4);
+}
+.pulse-dot-live::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: #f87171; opacity: 0.3; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform:scale(1); opacity:.3 } 50% { transform:scale(2.5); opacity:0 } }
+
+div.stButton > button {
+    background: linear-gradient(135deg, #16a34a, #15803d) !important;
+    color: #f0fdf4 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    border: 1px solid #22c55e44 !important;
+    padding: 0.5rem 1.8rem !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 20px rgba(22, 163, 106, 0.15), 0 2px 8px rgba(0,0,0,0.3) !important;
+    transition: all 0.2s !important;
+}
+div.stButton > button:hover {
+    box-shadow: 0 0 30px rgba(22, 163, 106, 0.25), 0 4px 12px rgba(0,0,0,0.4) !important;
+}
+
+/* Selectbox styling */
+div[data-baseweb="select"] > div {
+    background: #0a1120 !important;
+    border-color: #1a2a3a !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+}
+label {
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 11px !important;
+    color: #3f6b54 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,7 +142,6 @@ div.stButton > button { background: linear-gradient(135deg, #22c55e, #16a34a) !i
 # ============================================================
 
 def get_event_code(market):
-    """Extract the event code from a Kalshi market ticker, e.g. 'ATPBP26' from 'KXPGATOUR-ATPBP26-XSCH'."""
     et = market.get("event_ticker", "")
     parts = et.split("-")
     if len(parts) >= 2:
@@ -75,15 +159,8 @@ def get_tournament_label(market):
     return "Unknown"
 
 def identify_current_event_code(markets_by_type, dg_event_name):
-    """
-    Figure out which Kalshi event code corresponds to the current DG tournament.
-    Strategy: find the most common event code across all Kalshi markets, then verify
-    it matches the DG event name. If there are multiple events, pick the one that
-    matches DG's event name keywords.
-    """
     event_code_counts = {}
     event_code_to_label = {}
-
     for m_type, markets in markets_by_type.items():
         for m in markets:
             code = get_event_code(m)
@@ -91,34 +168,21 @@ def identify_current_event_code(markets_by_type, dg_event_name):
                 event_code_counts[code] = event_code_counts.get(code, 0) + 1
                 if code not in event_code_to_label:
                     event_code_to_label[code] = get_tournament_label(m)
-
     if not event_code_counts:
         return None
-
-    # Try to match DG event name to a Kalshi event label
     dg_lower = dg_event_name.lower()
     for code, label in event_code_to_label.items():
         label_lower = label.lower()
-        # Check if key words from the label appear in the DG event name
         if any(word in dg_lower for word in label_lower.split() if len(word) > 3):
             return code
-
-    # Fallback: find the event code with the earliest expiration (most current tournament)
-    # by looking at which has the most markets (current week has the most liquidity)
-    # Actually, just pick the most common one that ISN'T a major months away
     major_codes = set()
     for code, label in event_code_to_label.items():
         if label in ["Masters", "PGA Championship", "US Open", "The Open"]:
             major_codes.add(code)
-
-    # Prefer non-major (current week event) over future major
     non_major = {c: n for c, n in event_code_counts.items() if c not in major_codes}
     if non_major:
         return max(non_major, key=non_major.get)
-
-    # If only majors, pick the most common
     return max(event_code_counts, key=event_code_counts.get)
-
 
 def normalize_name(name):
     if not name: return ""
@@ -202,23 +266,17 @@ def calculate_all_edges(dg_data, kalshi_by_type):
             parts = norm.split()
             if len(parts) >= 2:
                 dg_fuzzy[f"{parts[0][0]}_{parts[-1]}"] = p
-
-    # Identify which Kalshi event code matches the current DG tournament
     current_event_code = identify_current_event_code(kalshi_by_type, dg_event_name)
-
     edges = []
     matched = 0
     skipped_other_event = 0
-
     for m_type, markets in kalshi_by_type.items():
         for m in markets:
-            # FILTER: Only process markets for the current tournament
             if current_event_code:
                 market_event_code = get_event_code(m)
                 if market_event_code and market_event_code != current_event_code:
                     skipped_other_event += 1
                     continue
-
             k_name = get_kalshi_player_name(m)
             if not k_name: continue
             k_norm = normalize_name(k_name)
@@ -236,7 +294,6 @@ def calculate_all_edges(dg_data, kalshi_by_type):
             dg_no = 100 - dg_yes
             tournament = get_tournament_label(m)
             display_name = format_player_name(dg.get("player_name", k_name))
-
             if yes_ask and yes_ask > 0:
                 edges.append({"player": display_name, "market": MARKET_LABELS.get(m_type), "side": "YES", "event": tournament,
                     "dg_prob": dg_yes, "dg_yes": dg_yes, "dg_no": dg_no, "cost": yes_ask,
@@ -245,89 +302,351 @@ def calculate_all_edges(dg_data, kalshi_by_type):
                 edges.append({"player": display_name, "market": MARKET_LABELS.get(m_type), "side": "NO", "event": tournament,
                     "dg_prob": dg_no, "dg_yes": dg_yes, "dg_no": dg_no, "cost": no_ask,
                     "edge": dg_no - no_ask, "profit": 100 - no_ask, "rr": (100 - no_ask) / no_ask})
-
     return edges, matched, len(players), skipped_other_event
 
 
 def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source, skipped_other):
     rows = ""
-    for e in filtered:
+    for i, e in enumerate(filtered):
         if e["event"] == "Masters":
-            evt_html = f'<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#7c3aed14;color:#a78bfa;border:1px solid #7c3aed30;">{e["event"]}</span>'
+            evt_html = f'<span class="badge badge-masters">{e["event"]}</span>'
         elif e["event"] == "Pebble Beach":
-            evt_html = f'<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#22c55e0a;color:#4ade80;border:1px solid #22c55e1a;">{e["event"]}</span>'
+            evt_html = f'<span class="badge badge-current">{e["event"]}</span>'
         else:
-            evt_html = f'<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#64748b14;color:#94a3b8;border:1px solid #64748b30;">{e["event"]}</span>'
+            evt_html = f'<span class="badge badge-other">{e["event"]}</span>'
 
         if e["side"] == "YES":
-            side_html = '<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;background:#3b82f614;color:#60a5fa;border:1px solid #3b82f630;">YES</span>'
-            model_html = f'<span style="color:#e2e8f0;">{e["dg_prob"]:.1f}%</span>'
+            side_html = '<span class="badge badge-yes">YES</span>'
+            model_html = f'<span class="text-bright">{e["dg_prob"]:.1f}%</span>'
         else:
-            side_html = '<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;background:#f59e0b14;color:#fbbf24;border:1px solid #f59e0b30;">NO</span>'
-            model_html = f'<span style="color:#64748b;">{e["dg_yes"]:.1f}% YES &rarr;</span> <span style="color:#e2e8f0;">{e["dg_no"]:.1f}% NO</span>'
+            side_html = '<span class="badge badge-no">NO</span>'
+            model_html = f'<span class="text-dim">{e["dg_yes"]:.1f}% &rarr;</span> <span class="text-bright">{e["dg_no"]:.1f}%</span>'
 
-        edge_color = "#22c55e" if e["edge"] >= 7 else "#4ade80" if e["edge"] >= 5 else "#86efac"
-        rr_color = "#22c55e" if e["rr"] >= 2 else "#4ade80" if e["rr"] >= 1 else "#94a3b8"
+        edge_cls = "edge-hot" if e["edge"] >= 7 else "edge-warm" if e["edge"] >= 5 else "edge-mild"
+        rr_cls = "rr-hot" if e["rr"] >= 2 else "rr-warm" if e["rr"] >= 1 else "rr-cool"
 
         rows += f"""<tr>
 <td>{evt_html}</td>
-<td style="font-family:'Space Grotesk',sans-serif;font-weight:600;color:#f1f5f9;">{e["player"]}</td>
-<td style="color:#94a3b8;">{e["market"]}</td>
+<td class="player-cell">{e["player"]}</td>
+<td class="text-secondary">{e["market"]}</td>
 <td>{side_html}</td>
 <td>{model_html}</td>
-<td><span style="color:{edge_color};font-weight:700;">+{e["edge"]:.1f}%</span></td>
-<td style="color:#e2e8f0;font-weight:500;">{e["cost"]}&cent;</td>
-<td><span style="color:{rr_color};font-weight:700;">{e["rr"]:.1f}x</span></td>
+<td><span class="{edge_cls}">+{e["edge"]:.1f}%</span></td>
+<td class="text-bright" style="font-weight:500;">{e["cost"]}&cent;</td>
+<td><span class="{rr_cls}">{e["rr"]:.1f}x</span></td>
 </tr>"""
 
     if not filtered:
-        table_body = f'<tr><td colspan="8" style="padding:40px;text-align:center;color:#475569;">No edges above {min_edge}%. Try lowering the threshold.</td></tr>'
+        table_body = f'<tr><td colspan="8" class="empty-state">No edges above {min_edge}% — try lowering the threshold</td></tr>'
     else:
         table_body = rows
 
-    source_badge = '<span style="background:#ef444420;color:#f87171;border:1px solid #ef444440;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.05em;">&#x1F534; LIVE MODEL</span>' if source == "LIVE" else '<span style="background:#3b82f620;color:#60a5fa;border:1px solid #3b82f640;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:0.05em;">PRE-TOURNAMENT</span>'
+    if source == "LIVE":
+        source_badge = '<span class="source-badge source-live"><span class="live-dot"></span>LIVE MODEL</span>'
+    else:
+        source_badge = '<span class="source-badge source-pre">PRE-TOURNAMENT</span>'
 
-    skipped_note = f" &middot; {skipped_other} other-event markets filtered out" if skipped_other > 0 else ""
+    skipped_note = f" &middot; {skipped_other} future markets filtered" if skipped_other > 0 else ""
 
     return f"""<!DOCTYPE html><html><head><style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-*{{box-sizing:border-box;margin:0;padding:0}}body{{background:#0a0f1a;color:#e2e8f0;font-family:'JetBrains Mono','SF Mono',monospace;}}
-.event-banner{{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:16px 20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}}
-.event-label{{font-size:10px;color:#475569;letter-spacing:0.12em;font-weight:600;}}
-.event-name{{font-size:20px;font-family:'Space Grotesk',sans-serif;font-weight:700;color:#f8fafc;margin-top:4px;}}
-.stat-row{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}}
-.stat-card{{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:14px 16px;position:relative;overflow:hidden;}}
-.stat-card .bar{{position:absolute;top:0;left:0;right:0;height:2px;}}
-.stat-label{{font-size:10px;color:#475569;letter-spacing:0.1em;margin-bottom:6px;}}
-.stat-value{{font-size:26px;font-weight:700;}}
-.table-wrap{{background:#0f172a;border:1px solid #1e293b;border-radius:8px;overflow:hidden;}}
-table{{width:100%;border-collapse:collapse;font-size:13px;}}
-thead th{{background:#0a0f1a;color:#475569;font-size:10px;letter-spacing:0.1em;font-weight:600;padding:12px 14px;text-align:left;border-bottom:1px solid #1e293b;white-space:nowrap;}}
-tbody td{{padding:10px 14px;border-bottom:1px solid rgba(30,41,59,0.08);white-space:nowrap;}}
-tbody tr:nth-child(even){{background:rgba(10,15,26,0.13);}}
-tbody tr:hover{{background:rgba(30,41,59,0.2);}}
-.footer{{font-size:11px;color:#334155;margin-top:16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
+* {{ box-sizing:border-box; margin:0; padding:0; }}
+body {{
+    background: #060b14;
+    color: #c4d6cf;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+}}
+
+/* Event banner */
+.event-banner {{
+    background: linear-gradient(135deg, #0a1a12 0%, #0d1117 50%, #0a1a12 100%);
+    border: 1px solid #1a3a2a;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+}}
+.event-banner::before {{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #4ade8033, transparent);
+}}
+.event-label {{
+    font-size: 9px;
+    color: #3f6b54;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+    text-transform: uppercase;
+}}
+.event-name {{
+    font-family: 'DM Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #e8f5ec;
+    margin-top: 6px;
+    letter-spacing: -0.3px;
+}}
+.event-stat {{
+    text-align: center;
+}}
+.event-stat-value {{
+    font-size: 20px;
+    font-weight: 600;
+    color: #e8f5ec;
+    font-family: 'DM Sans', sans-serif;
+}}
+
+/* Source badges */
+.source-badge {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}}
+.source-live {{
+    background: #f8717115;
+    color: #f87171;
+    border: 1px solid #f8717133;
+}}
+.source-pre {{
+    background: #4ade8010;
+    color: #4ade80;
+    border: 1px solid #4ade8025;
+}}
+.live-dot {{
+    width: 6px; height: 6px;
+    background: #f87171;
+    border-radius: 50%;
+    animation: livePulse 1.5s ease-in-out infinite;
+}}
+@keyframes livePulse {{ 0%,100% {{ opacity:1 }} 50% {{ opacity:0.4 }} }}
+
+/* Stat cards */
+.stat-row {{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}}
+.stat-card {{
+    background: linear-gradient(160deg, #0c1a14, #0a1120);
+    border: 1px solid #1a2a22;
+    border-radius: 10px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+}}
+.stat-card::before {{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+}}
+.stat-card.green::before {{ background: linear-gradient(90deg, transparent, #4ade8030, transparent); }}
+.stat-card.blue::before {{ background: linear-gradient(90deg, transparent, #60a5fa30, transparent); }}
+.stat-card.amber::before {{ background: linear-gradient(90deg, transparent, #fbbf2430, transparent); }}
+.stat-card.purple::before {{ background: linear-gradient(90deg, transparent, #a78bfa30, transparent); }}
+.stat-label {{
+    font-size: 9px;
+    color: #3f6b54;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    margin-bottom: 8px;
+}}
+.stat-value {{
+    font-family: 'DM Sans', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+}}
+.stat-green {{ color: #4ade80; }}
+.stat-blue {{ color: #60a5fa; }}
+.stat-amber {{ color: #fbbf24; }}
+.stat-purple {{ color: #a78bfa; }}
+
+/* Table */
+.table-wrap {{
+    background: linear-gradient(160deg, #0c1a14, #0a1120);
+    border: 1px solid #1a2a22;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}}
+.table-wrap::before {{
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #4ade8020, transparent);
+}}
+table {{ width: 100%; border-collapse: collapse; }}
+thead th {{
+    background: #060b14;
+    color: #3f6b54;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid #1a2a22;
+    white-space: nowrap;
+    text-transform: uppercase;
+}}
+tbody td {{
+    padding: 12px 16px;
+    border-bottom: 1px solid #0d1a1408;
+    white-space: nowrap;
+    transition: background 0.15s;
+}}
+tbody tr:nth-child(even) {{ background: #04080e44; }}
+tbody tr:hover {{ background: #1a2a2233; }}
+.player-cell {{
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    color: #e8f5ec;
+    font-size: 13px;
+}}
+.text-bright {{ color: #d4e8dc; }}
+.text-dim {{ color: #3f6b54; }}
+.text-secondary {{ color: #5a8a70; }}
+.empty-state {{
+    padding: 48px !important;
+    text-align: center;
+    color: #3f6b54;
+    font-style: italic;
+}}
+
+/* Badges */
+.badge {{
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}}
+.badge-yes {{
+    background: #60a5fa12;
+    color: #60a5fa;
+    border: 1px solid #60a5fa28;
+}}
+.badge-no {{
+    background: #fbbf2412;
+    color: #fbbf24;
+    border: 1px solid #fbbf2428;
+}}
+.badge-current {{
+    background: #4ade8008;
+    color: #4ade80;
+    border: 1px solid #4ade8020;
+}}
+.badge-masters {{
+    background: #a78bfa10;
+    color: #a78bfa;
+    border: 1px solid #a78bfa28;
+}}
+.badge-other {{
+    background: #5a8a7010;
+    color: #5a8a70;
+    border: 1px solid #5a8a7028;
+}}
+
+/* Edge colors */
+.edge-hot {{ color: #4ade80; font-weight: 700; text-shadow: 0 0 12px rgba(74,222,128,0.2); }}
+.edge-warm {{ color: #86efac; font-weight: 700; }}
+.edge-mild {{ color: #a7f3d0; font-weight: 600; }}
+.rr-hot {{ color: #4ade80; font-weight: 700; }}
+.rr-warm {{ color: #86efac; font-weight: 600; }}
+.rr-cool {{ color: #5a8a70; font-weight: 500; }}
+
+/* Footer */
+.footer {{
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #1a2a2233;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 11px;
+    color: #2a4a3a;
+}}
+.footer-credit {{
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: #3f6b54;
+    text-align: center;
+    margin-top: 20px;
+    padding: 16px 0;
+    border-top: 1px solid #1a2a2218;
+    letter-spacing: 0.02em;
+}}
+.footer-credit a {{
+    color: #4ade80;
+    text-decoration: none;
+}}
 </style></head><body>
+
 <div class="event-banner">
   <div>
-    <div style="display:flex;align-items:center;gap:10px;"><span class="event-label">CURRENT EVENT</span>{source_badge}</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px;">
+        <span class="event-label">Current Event</span>
+        {source_badge}
+    </div>
     <div class="event-name">{event_name}</div>
   </div>
-  <div style="display:flex;gap:24px;">
-    <div style="text-align:center;"><div class="event-label">FIELD</div><div style="font-size:18px;font-weight:600;color:#f8fafc;">{field_size}</div></div>
-    <div style="text-align:center;"><div class="event-label">MATCHED</div><div style="font-size:18px;font-weight:600;color:#f8fafc;">{matched}</div></div>
+  <div style="display:flex;gap:28px;">
+    <div class="event-stat">
+      <div class="event-label">Field</div>
+      <div class="event-stat-value">{field_size}</div>
+    </div>
+    <div class="event-stat">
+      <div class="event-label">Matched</div>
+      <div class="event-stat-value">{matched}</div>
+    </div>
   </div>
 </div>
+
 <div class="stat-row">
-  <div class="stat-card"><div class="bar" style="background:linear-gradient(90deg,transparent,#22c55e40,transparent);"></div><div class="stat-label">EDGES FOUND</div><div class="stat-value" style="color:#22c55e;">{len(filtered)}</div></div>
-  <div class="stat-card"><div class="bar" style="background:linear-gradient(90deg,transparent,#3b82f640,transparent);"></div><div class="stat-label">BUY YES</div><div class="stat-value" style="color:#3b82f6;">{yes_count}</div></div>
-  <div class="stat-card"><div class="bar" style="background:linear-gradient(90deg,transparent,#f59e0b40,transparent);"></div><div class="stat-label">BUY NO</div><div class="stat-value" style="color:#f59e0b;">{no_count}</div></div>
-  <div class="stat-card"><div class="bar" style="background:linear-gradient(90deg,transparent,#a78bfa40,transparent);"></div><div class="stat-label">AVG EDGE</div><div class="stat-value" style="color:#a78bfa;">{avg_edge:.1f}%</div></div>
+  <div class="stat-card green"><div class="stat-label">Edges Found</div><div class="stat-value stat-green">{len(filtered)}</div></div>
+  <div class="stat-card blue"><div class="stat-label">Buy Yes</div><div class="stat-value stat-blue">{yes_count}</div></div>
+  <div class="stat-card amber"><div class="stat-label">Buy No</div><div class="stat-value stat-amber">{no_count}</div></div>
+  <div class="stat-card purple"><div class="stat-label">Avg Edge</div><div class="stat-value stat-purple">{avg_edge:.1f}%</div></div>
 </div>
-<div class="table-wrap"><div style="overflow-x:auto;"><table><thead><tr>
-<th>EVENT</th><th>PLAYER</th><th>MARKET</th><th>SIDE</th><th>DG MODEL</th><th>EDGE</th><th>COST</th><th>R/R</th>
-</tr></thead><tbody>{table_body}</tbody></table></div></div>
-<div class="footer"><span>Edge = DG probability &minus; Kalshi ask price &middot; Actual orderbook prices</span><span>{matched} markets matched &middot; {field_size} players{skipped_note}</span></div>
+
+<div class="table-wrap">
+  <div style="overflow-x:auto;">
+    <table>
+      <thead><tr>
+        <th>Event</th><th>Player</th><th>Market</th><th>Side</th><th>DG Model</th><th>Edge</th><th>Cost</th><th>R/R</th>
+      </tr></thead>
+      <tbody>{table_body}</tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+    <span>Edge = DG probability &minus; Kalshi ask &middot; Live orderbook prices</span>
+    <span>{matched} matched &middot; {field_size} players{skipped_note}</span>
+</div>
+
+<div class="footer-credit">
+    Created by Zack Hennigan
+</div>
+
 </body></html>"""
 
 
@@ -337,8 +656,13 @@ tbody tr:hover{{background:rgba(30,41,59,0.2);}}
 
 st.markdown("""
 <div style="margin-bottom:20px;">
-    <div class="edge-title">EDGE<span>FINDER</span> <span style="font-size:12px; background:#22c55e15; border:1px solid #22c55e30; color:#22c55e; padding:2px 8px; border-radius:4px; letter-spacing:0.12em; vertical-align:middle;">GOLF</span></div>
-    <div class="edge-subtitle">Data Golf Model × Kalshi Markets</div>
+    <div class="edge-header">
+        <div class="edge-logo">⛳</div>
+        <div>
+            <div class="edge-title">EDGE<span>FINDER</span> <span class="edge-badge">GOLF</span></div>
+            <div class="edge-subtitle">Data Golf Model × Kalshi Markets</div>
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -401,8 +725,8 @@ if scan or "edges" in st.session_state:
         st.markdown(f"""
         <div class="pulse-container" style="margin-top:8px;">
             <div class="{dot_class}"></div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#64748b;">
-                {label} · Updated {time_str}
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3f6b54;">
+                {label} &middot; {time_str}
             </span>
         </div>
         """, unsafe_allow_html=True)
@@ -417,4 +741,4 @@ if scan or "edges" in st.session_state:
     avg_edge = sum(e["edge"] for e in filtered) / len(filtered) if filtered else 0
 
     html = build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source, skipped_other)
-    components.html(html, height=320 + max(len(filtered), 1) * 44, scrolling=True)
+    components.html(html, height=380 + max(len(filtered), 1) * 46, scrolling=True)
