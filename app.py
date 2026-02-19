@@ -441,17 +441,35 @@ if scan or "edges" in st.session_state:
         fetch_dg_pretournament.clear()
         fetch_kalshi_markets.clear()
 
-        with st.spinner("Checking for live tournament data..."):
-            dg_data = fetch_dg_live()
-        if dg_data:
-            st.toast("🔴 Live model active!", icon="🔴")
+        # Always fetch pre-tournament first — this is the source of truth for the CURRENT event
+        with st.spinner("Fetching current tournament data..."):
+            try:
+                pretournament_data = fetch_dg_pretournament()
+            except Exception as e:
+                st.error(f"Data Golf error: {e}")
+                st.stop()
+
+        current_event = pretournament_data.get("event_name", "")
+
+        # Now try live — but only use it if it matches the current event
+        dg_data = None
+        with st.spinner("Checking for live model..."):
+            live_data = fetch_dg_live()
+
+        if live_data:
+            live_event = live_data.get("event_name", "")
+            # Check if live data is for the same event as pre-tournament
+            # Compare by checking if key words overlap
+            current_words = set(w.lower() for w in current_event.split() if len(w) > 3)
+            live_words = set(w.lower() for w in live_event.split() if len(w) > 3)
+            if current_words & live_words:
+                dg_data = live_data
+                st.toast("🔴 Live model active!", icon="🔴")
+            else:
+                # Live data is from a different (old) tournament — ignore it
+                dg_data = pretournament_data
         else:
-            with st.spinner("Using pre-tournament model..."):
-                try:
-                    dg_data = fetch_dg_pretournament()
-                except Exception as e:
-                    st.error(f"Data Golf error: {e}")
-                    st.stop()
+            dg_data = pretournament_data
 
         kalshi_by_type = {}
         for m_type, ticker in KALSHI_SERIES.items():
