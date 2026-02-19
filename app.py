@@ -18,7 +18,7 @@ DG_BASE = "https://feeds.datagolf.com"
 KALSHI_SERIES = {"win": "KXPGATOUR", "top_5": "KXPGATOP5", "top_10": "KXPGATOP10", "top_20": "KXPGATOP20"}
 KNOWN_EVENTS = {
     "ATPBP": "Pebble Beach", "MAST": "Masters", "PGAC": "PGA Championship",
-    "USOP": "US Open", "OPEN": "The Open", "PLAY": "Players", "GENE": "Genesis",
+    "USOP": "US Open", "OPEN": "The Open", "PLAY": "Players", "GENE": "Genesis", "GENI": "Genesis", "GNES": "Genesis",
     "PHOE": "WM Phoenix", "FARM": "Farmers", "MEMO": "Memorial", "TRAV": "Travelers",
     "SENT": "Sentry", "SONY": "Sony Open", "WELL": "Wells Fargo", "RBC": "RBC Heritage",
 }
@@ -436,6 +436,11 @@ with c4: sort_by = st.selectbox("Sort By", ["Edge", "R/R", "Profit"])
 
 if scan or "edges" in st.session_state:
     if scan:
+        # Clear cached data to ensure fresh pull (important when tournaments change week to week)
+        fetch_dg_live.clear()
+        fetch_dg_pretournament.clear()
+        fetch_kalshi_markets.clear()
+
         with st.spinner("Checking for live tournament data..."):
             dg_data = fetch_dg_live()
         if dg_data:
