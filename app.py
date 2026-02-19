@@ -18,9 +18,15 @@ DG_BASE = "https://feeds.datagolf.com"
 KALSHI_SERIES = {"win": "KXPGATOUR", "top_5": "KXPGATOP5", "top_10": "KXPGATOP10", "top_20": "KXPGATOP20"}
 KNOWN_EVENTS = {
     "ATPBP": "Pebble Beach", "MAST": "Masters", "PGAC": "PGA Championship",
-    "USOP": "US Open", "OPEN": "The Open", "PLAY": "Players", "GENE": "Genesis", "GENI": "Genesis", "GNES": "Genesis",
+    "USOP": "US Open", "OPEN": "The Open", "PLAY": "Players",
+    "GENE": "Genesis", "GENI": "Genesis", "GNES": "Genesis", "GNIN": "Genesis", "GNINV": "Genesis",
     "PHOE": "WM Phoenix", "FARM": "Farmers", "MEMO": "Memorial", "TRAV": "Travelers",
     "SENT": "Sentry", "SONY": "Sony Open", "WELL": "Wells Fargo", "RBC": "RBC Heritage",
+    "AMEX": "AmEx", "AMER": "AmEx", "ARNO": "Arnold Palmer", "HOND": "Honda",
+    "VALE": "Valero", "BYRO": "Byron Nelson", "CHAR": "Charles Schwab",
+    "JOHN": "John Deere", "ROCK": "Rocket Mortgage", "SCOT": "Scottish Open",
+    "WYNDH": "Wyndham", "ZURC": "Zurich", "CIGN": "Cigna", "RSM": "RSM Classic",
+    "HERO": "Hero", "TOUR": "Tour Championship", "FEDEX": "FedEx",
 }
 MARKET_LABELS = {"win": "Win", "top_5": "Top 5", "top_10": "Top 10", "top_20": "Top 20"}
 DG_FIELDS = {"win": "win", "top_5": "top_5", "top_10": "top_10", "top_20": "top_20"}
@@ -88,14 +94,14 @@ def get_event_code(market):
     parts = et.split("-")
     return parts[1].upper() if len(parts) >= 2 else ""
 
-def get_tournament_label(market):
+def get_tournament_label(market, fallback="Unknown"):
     et = market.get("event_ticker", "")
     parts = et.split("-")
     if len(parts) >= 2:
         code = re.sub(r'\d+$', '', parts[1]).upper()
         for key, name in KNOWN_EVENTS.items():
             if key in code: return name
-    return "Unknown"
+    return fallback
 
 def identify_current_event_code(markets_by_type, dg_event_name):
     event_code_counts, event_code_to_label = {}, {}
@@ -185,6 +191,15 @@ def calculate_all_edges(dg_data, kalshi_by_type):
             parts = norm.split()
             if len(parts) >= 2: dg_fuzzy[f"{parts[0][0]}_{parts[-1]}"] = p
     current_event_code = identify_current_event_code(kalshi_by_type, dg_data.get("event_name", ""))
+    dg_event_name = dg_data.get("event_name", "Unknown")
+    # Create a short fallback label from the DG event name (e.g. "The Genesis Invitational" -> "Genesis")
+    fallback_label = dg_event_name
+    for word in ["The ", "the ", "Invitational", "Tournament", "Championship", "Classic", "Open"]:
+        fallback_label = fallback_label.replace(word, "")
+    fallback_label = fallback_label.strip()
+    if not fallback_label:
+        fallback_label = dg_event_name
+
     edges, matched, skipped = [], 0, 0
     for m_type, markets in kalshi_by_type.items():
         for m in markets:
@@ -203,7 +218,7 @@ def calculate_all_edges(dg_data, kalshi_by_type):
             dg_prob = dg.get(DG_FIELDS.get(m_type))
             if dg_prob is None: continue
             dg_yes = dg_prob * 100 if dg_prob <= 1 else float(dg_prob); dg_no = 100 - dg_yes
-            tournament = get_tournament_label(m)
+            tournament = get_tournament_label(m, fallback=fallback_label)
             display_name = format_player_name(dg.get("player_name", k_name))
             if yes_ask and yes_ask > 0:
                 edges.append({"player": display_name, "market": MARKET_LABELS.get(m_type), "side": "YES", "event": tournament,
@@ -219,7 +234,7 @@ def calculate_all_edges(dg_data, kalshi_by_type):
 def build_results_html(filtered, event_name, field_size, matched, min_edge, yes_count, no_count, avg_edge, source, skipped_other):
     rows = ""
     for e in filtered:
-        evt_cls = "badge-masters" if e["event"] == "Masters" else "badge-current" if e["event"] == "Pebble Beach" else "badge-other"
+        evt_cls = "badge-masters" if e["event"] == "Masters" else "badge-current"
         evt_html = f'<span class="badge {evt_cls}">{e["event"]}</span>'
 
         if e["side"] == "YES":
