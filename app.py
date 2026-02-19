@@ -15,7 +15,7 @@ DG_API_KEY = st.secrets.get("DG_API_KEY", "")
 KALSHI_BASE = "https://api.elections.kalshi.com/trade-api/v2"
 DG_BASE = "https://feeds.datagolf.com"
 
-KALSHI_SERIES = {"win": "KXPGATOUR", "top_5": "KXPGATOP5", "top_10": "KXPGATOP10", "top_20": "KXPGATOP20"}
+KALSHI_SERIES = {"win": "KXPGATOUR", "top_5": "KXPGATOP5", "top_10": "KXPGATOP10", "top_20": "KXPGATOP20", "make_cut": "KXPGAMAKECUT"}
 KNOWN_EVENTS = {
     "ATPBP": "Pebble Beach", "MAST": "Masters", "PGAC": "PGA Championship",
     "USOP": "US Open", "OPEN": "The Open", "PLAY": "Players",
@@ -28,8 +28,8 @@ KNOWN_EVENTS = {
     "WYNDH": "Wyndham", "ZURC": "Zurich", "CIGN": "Cigna", "RSM": "RSM Classic",
     "HERO": "Hero", "TOUR": "Tour Championship", "FEDEX": "FedEx",
 }
-MARKET_LABELS = {"win": "Win", "top_5": "Top 5", "top_10": "Top 10", "top_20": "Top 20"}
-DG_FIELDS = {"win": "win", "top_5": "top_5", "top_10": "top_10", "top_20": "top_20"}
+MARKET_LABELS = {"win": "Win", "top_5": "Top 5", "top_10": "Top 10", "top_20": "Top 20", "make_cut": "Make Cut"}
+DG_FIELDS = {"win": "win", "top_5": "top_5", "top_10": "top_10", "top_20": "top_20", "make_cut": "make_cut"}
 
 EST = timezone(timedelta(hours=-5))
 def now_est():
@@ -446,7 +446,7 @@ with col_btn:
 c1, c2, c3, c4 = st.columns(4)
 with c1: min_edge = st.selectbox("Min Edge %", [3, 5, 7, 10], index=1)
 with c2: side_filter = st.selectbox("Side", ["All", "YES", "NO"])
-with c3: market_filter = st.selectbox("Market", ["All", "Win", "Top 5", "Top 10", "Top 20"])
+with c3: market_filter = st.selectbox("Market", ["All", "Win", "Top 5", "Top 10", "Top 20", "Make Cut"])
 with c4: sort_by = st.selectbox("Sort By", ["Edge", "R/R", "Profit"])
 
 if scan or "edges" in st.session_state:
